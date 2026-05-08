@@ -1,0 +1,66 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if a user is an admin
+    function isAdmin(uid) {
+      return uid == 'LUdX7IDd4fhAHK2JvhLeaLbgQFx1';
+    }
+
+    // Users collection
+    match /users/{uid} {
+      // Any authenticated user can create their own user document.
+      allow create: if request.auth.uid == uid;
+      
+      // A user can read their own document, or an admin can read any user document.
+      allow read: if request.auth.uid == uid || isAdmin(request.auth.uid);
+
+      // A user can update their own document, but cannot change the 'blocked' status.
+      // An admin can update any user document, including the 'blocked' status.
+      allow update: if (request.auth.uid == uid && !('blocked' in request.resource.data)) || isAdmin(request.auth.uid);
+    }
+    
+    // Notifications subcollection
+    match /users/{uid}/notifications/{notificationId} {
+        // A user can read and write to their own notifications subcollection.
+      allow read, write: if request.auth.uid == uid;
+    }
+
+    // Withdraw requests collection
+    match /withdrawRequests/{requestId} {
+      // Any authenticated user can create a withdraw request.
+      allow create: if request.auth != null;
+
+      // A user can read their own withdraw requests. Admins can read all requests.
+      allow read: if resource.data.uid == request.auth.uid || isAdmin(request.auth.uid);
+      
+      // Only admins can update the status of a withdraw request.
+      allow update: if isAdmin(request.auth.uid);
+    }
+
+    // Admin logs collection
+    match /adminLogs/{logId} {
+        // Only admins can create, read, or write to admin logs.
+      allow read, write: if isAdmin(request.auth.uid);
+    }
+
+    // App config collection
+    match /appConfig/{documentId} {
+        // Any authenticated user can read the app config.
+      allow read: if request.auth != null;
+      
+      // Only admins can write to the app config.
+      allow write: if isAdmin(request.auth.uid);
+    }
+    
+    // Global notifications collection
+    match /globalNotifications/{notificationId} {
+        // Any authenticated user can read active global notifications.
+      allow read: if request.auth != null;
+      
+      // Only admins can create or update global notifications.
+      allow write: if isAdmin(request.auth.uid);
+    }
+  }
+}

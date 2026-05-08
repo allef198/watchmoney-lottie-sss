@@ -1,0 +1,25 @@
+# Gradle / Android
+.gradle/
+.kotlin/
+build/
+app/build/
+local.properties
+key.properties
+*.jks
+*.keystore
+upload-keystore.jks
+
+# APKs e arquivos gerados
+*.apk
+*.aab
+apk_em_texto.txt
+
+# IDE
+.idea/
+*.iml
+
+# Flutter antigo / caso crie de novo no futuro
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
